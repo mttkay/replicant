@@ -173,3 +173,13 @@ class ListCommand < Command
   end
 end
 
+class RestartCommand < Command
+  def run
+    # Faster than kill-server, and also catches ADB instances launched by
+    # IntelliJ. Moreover, start-server after kill-server sometimes makes the
+    # server fail to start up unless you sleep for a second or so
+    `killall adb`
+    DefaultCommand.new(@repl, ["start-server"]).execute
+  end
+end
+
