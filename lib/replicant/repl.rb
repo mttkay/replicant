@@ -1,5 +1,7 @@
 class REPL
 
+  include Styles
+
   ADB = 'adb'
 
   attr_accessor :default_package
@@ -51,17 +53,20 @@ class REPL
     prompt = ENV['REPL_PROMPT'] || begin
       package = @default_package ? "[#{@default_package}]" : ""
       device  = @default_device ? "@#{@default_device}" : ""
-      package + " #{ADB}#{device} >> "
+      package + " #{device} #{span('>>', :white_fg, :bold) { styled(:green_fg) }} "
     end.lstrip
   end
 
   def show_greeting
-    puts "+----------------------------------------------------------------"
-    puts "+ Welcome to REPLicant."
-    puts "+"
-    puts "+ Type !list to obtain the list of commands."
-    puts "+ Commands that do not start in '!' are sent to adb verbatim."
-    puts "+----------------------------------------------------------------"
+    style = styled(:white_fg, :black_bg, :bold)
+    puts style
+    puts "~" * 75
+    puts " Welcome to #{span('REPLicant', :green_fg) { style }}."
+    puts ""
+    puts " Type !list to obtain the list of commands."
+    puts " Commands that do not start in '!' are sent to adb verbatim."
+    puts "~" * 75
+    puts unstyled
   end
 
   def show_help
