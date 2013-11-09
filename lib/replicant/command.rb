@@ -105,13 +105,11 @@ class AdbCommand < Command
   end
 end
 
-class DevicesCommand < AdbCommand
-  def args
-    "devices"
-  end
-
+class DevicesCommand < Command
   def run
-    device_list = super.lines.find_all { |l| /device$/ =~ l }.map { |l| l.gsub("device", "").strip }
+    adb_out = AdbCommand.new(@repl, ["devices"]).execute
+    device_lines = adb_out.lines.find_all { |l| /device$/ =~ l }
+    device_list = device_lines.map { |l| l.gsub("device", "").strip }
     puts device_list.inspect if @repl.debug?
     device_list
   end
