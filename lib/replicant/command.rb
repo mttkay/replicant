@@ -78,7 +78,7 @@ class DefaultCommand < Command
           cmd << " #{@repl.default_package}" if @repl.default_package
         end
         res = `#{cmd}`
-        puts res
+        puts res unless res.empty?
         res
       end
     end
