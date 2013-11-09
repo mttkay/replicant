@@ -138,14 +138,53 @@ class DeviceCommand < Command
   end
 
   def valid_args?
-    args.length == 1 && @repl.devices.include?(args.first.strip)
+    args.length == 1 && (devices.include?(args.first.strip) || emu_shortcut || dev_shortcut)
   end
 
   def run
-    default_device = args.first
-    puts "Setting default device to #{default_device.inspect}"
-    @repl.default_device = default_device
+    shortcut = detect_shortcut
+    default_device = if shortcut
+      # e.g. emu1 or dev2
+      dev_number = shortcut.first[1].to_i
+      shortcut.last[dev_number - 1]
+    else
+      args.first
+    end
+
+    if default_device
+      puts "Setting default device to #{default_device.inspect}"
+      @repl.default_device = default_device
+    else
+      puts "No such device"
+    end
   end
+
+  private
+
+  def detect_shortcut
+    [[emu_shortcut, emulators], [dev_shortcut, physical_devices]].find { |s| !s.first.nil? }
+  end
+
+  def emu_shortcut
+    /^emu(\d)+/.match(args.first)
+  end
+
+  def dev_shortcut
+    /^dev(\d)+/.match(args.first)
+  end
+
+  def devices
+    @devices ||= DevicesCommand.new(@repl).execute
+  end
+
+  def emulators
+    devices.find_all { |d| d.start_with?("emulator-") }
+  end
+
+  def physical_devices
+    devices - emulators
+  end
+
 end
 
 class ResetCommand < Command

@@ -45,10 +45,6 @@ class REPL
     ARGV.include?('--debug')
   end
 
-  def devices
-    DevicesCommand.new(self).execute
-  end
-
   private
 
   def prompt
