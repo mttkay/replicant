@@ -4,7 +4,7 @@ class Command
 
   def self.inherited(subclass)
     @@subclasses ||= []
-    @@subclasses << subclass unless subclass == DefaultCommand
+    @@subclasses << subclass unless subclass == AdbCommand
   end
 
   def self.commands
@@ -27,7 +27,7 @@ class Command
         nil
       end
     else
-      DefaultCommand.new(repl, Array(command_line.strip))
+      AdbCommand.new(repl, Array(command_line.strip))
     end
   end
 
@@ -65,7 +65,7 @@ class Command
 
 end
 
-class DefaultCommand < Command
+class AdbCommand < Command
 
   def run
     begin
@@ -105,7 +105,7 @@ class DefaultCommand < Command
   end
 end
 
-class DevicesCommand < DefaultCommand
+class DevicesCommand < AdbCommand
   def args
     "devices"
   end
@@ -179,7 +179,7 @@ class RestartCommand < Command
     # IntelliJ. Moreover, start-server after kill-server sometimes makes the
     # server fail to start up unless you sleep for a second or so
     `killall adb`
-    DefaultCommand.new(@repl, ["start-server"]).execute
+    AdbCommand.new(@repl, ["start-server"]).execute
   end
 end
 
