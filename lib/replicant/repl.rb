@@ -33,6 +33,8 @@ class REPL
       exit
     end
 
+    return if command_line.strip.empty?
+
     command = Command.load(self, command_line)
     if command
       command.execute
@@ -54,8 +56,8 @@ class REPL
     prompt = ENV['REPL_PROMPT'] || begin
       package = @default_package || "No package set"
       device  = @default_device || "No device set"
-      puts "-- #{package}, #{device}"
-      "#{span('>>', :white_fg, :bold) { styled(:green_fg) }} "
+      puts "#{unstyled}-- #{package}, #{device}"
+      span('>> ', :white_fg, :bold) { styled(:green_fg) }
     end.lstrip
   end
 
