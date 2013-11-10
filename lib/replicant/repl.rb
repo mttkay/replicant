@@ -79,14 +79,23 @@ class REPL
 
   def show_greeting
     style = styled(:white_fg, :black_bg, :bold)
-    puts style
-    puts "~" * 75
-    puts " Welcome to #{span('REPLicant', :green_fg) { style }}."
+    logo = <<-logo
+                            dP oo                              dP
+                            88                                 88
+ 88d888b. .d8888b. 88d888b. 88 dP .d8888b. .d8888b. 88d888b. d8888P
+ 88'  `88 88ooood8 88'  `88 88 88 88'  `"" 88'  `88 88'  `88   88
+ 88       88.  ... 88.  .88 88 88 88.  ... 88.  .88 88    88   88
+ dP       `88888P' 88Y888P' dP dP `88888P' `88888P8 dP    dP   dP
+                   88
+                   dP                    (c) 2013 Matthias Kaeppler
+    logo
+    puts style + ("~" * 70)
+    puts " WELCOME TO"
+    puts span(logo, :green_fg) { style }
     puts ""
-    puts " Type !list to obtain the list of commands."
+    puts " Type #{span('!list', :green_fg) { style }} to see a list of commands."
     puts " Commands that do not start in '!' are sent to adb verbatim."
-    puts "~" * 75
-    puts unstyled
+    puts ("~" * 70) + unstyled
   end
 
   def show_help
