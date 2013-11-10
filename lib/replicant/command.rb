@@ -9,8 +9,8 @@ class Command
 
   def self.commands
     @@subclasses.map do |clazz|
-      clazz.new(nil).name
-    end.sort
+      clazz.new(nil)
+    end
   end
 
   def self.load(repl, command_line)
@@ -42,6 +42,15 @@ class Command
     "!#{self.class.name.gsub("Command", "").downcase}"
   end
 
+  # subclasses override this to provide a description of their functionality
+  def description
+    "TODO: description missing"
+  end
+
+  # subclasses override this to provide a usage example
+  def usage
+  end
+
   def execute
     if valid_args?
       run
@@ -51,13 +60,6 @@ class Command
   end
 
   private
-
-  def usage
-    "#{name} #{sample_args}"
-  end
-
-  def sample_args
-  end
 
   def valid_args?
     true
@@ -87,7 +89,7 @@ class AdbCommand < Command
   private
 
   def adb
-    adb = "#{REPL::ADB}"
+    adb = "#{Replicant::REPL::ADB}"
     adb << " -s #{@repl.default_device}" if @repl.default_device
     adb
   end
@@ -102,6 +104,10 @@ class AdbCommand < Command
 end
 
 class DevicesCommand < Command
+  def description
+    "print a list of connected devices"
+  end
+
   def run
     adb_out = AdbCommand.new(@repl, ["devices"]).execute
     device_lines = adb_out.lines.find_all { |l| /device$/ =~ l }
@@ -113,8 +119,12 @@ end
 
 class PackageCommand < Command
 
-  def sample_args
-    "com.mydomain.mypackage"
+  def description
+    "set a default package to work with"
+  end
+
+  def usage
+    "#{name} com.mydomain.mypackage"
   end
 
   def valid_args?
@@ -129,8 +139,12 @@ class PackageCommand < Command
 end
 
 class DeviceCommand < Command
-  def sample_args
-    "emulator-5554"
+  def description
+    "set a default device to work with"
+  end
+
+  def usage
+    "#{name} [emulator-5554|emu1|<serial>|dev1|...]"
   end
 
   def valid_args?
@@ -185,6 +199,10 @@ end
 
 class ResetCommand < Command
 
+  def description
+    "clear current device and package"
+  end
+
   def valid_args?
     args.empty?
   end
@@ -201,12 +219,26 @@ class ListCommand < Command
     args.empty?
   end
 
+  def description
+    "print a list of available commands"
+  end
+
   def run
-    puts Command.commands.join("\n")
+    command_list = Command.commands.sort_by {|c| c.name}.map do |command|
+      padding = 20 - command.name.length
+      desc = "#{command.name} #{' ' * padding} -- #{command.description}"
+      desc << " (e.g. #{command.usage})" if command.usage
+      desc
+    end
+    puts command_list.join("\n")
   end
 end
 
 class RestartCommand < Command
+  def description
+    "restart ADB"
+  end
+
   def run
     # Faster than kill-server, and also catches ADB instances launched by
     # IntelliJ. Moreover, start-server after kill-server sometimes makes the
