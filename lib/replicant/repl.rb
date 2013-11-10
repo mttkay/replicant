@@ -5,7 +5,13 @@ class REPL
 
   include Styles
 
+  # the command line program
   ADB = 'adb'
+  # for auto-complete via rlwrap; should probably go in Rakefile at some point
+  ADB_COMMANDS = %w(devices connect disconnect push pull sync shell emu logcat
+    forward jdwp install uninstall bugreport backup restore help version
+    wait-for-device start-server kill-server get-state get-serialno get-devpath
+    status-window remount reboot reboot-bootloader root usb tcpip ppp)
 
   attr_accessor :default_package
   attr_accessor :default_device
@@ -97,57 +103,25 @@ class REPL
     exit
   end
 
-  def setup_completion
-    if File.exists?(completion_dir)
-      set_completion_file!
-    end
-  end
-
-  def completion_dir
-    dir = ENV['REPL_COMPLETION_DIR'] || "~/.repl"
-    File.expand_path(dir)
-  end
-
-  def set_completion_file!
-    script = ARGV.detect { |a| a !~ /^-/ }
-    if script
-      @cfile = Dir[completion_dir + '/' + File.basename(script)].first
-      @cfile = nil if @cfile && !File.exists?(@cfile)
-    end
-  end
-
-  def setup_history
-    history_dir = ENV['REPL_HISTORY_DIR'] || "~/"
-    if File.exists?(hdir = File.expand_path(history_dir))
-      set_history_file!(hdir)
-    end
-  end
-
-  def set_history_file!(dir)
-    if script = ARGV.detect { |a| a !~ /^-/ }
-      script = File.basename(script)
-      @hfile = "#{dir}/.#{script}_history"
-    end
-  end
-
   def setup_rlwrap
-    setup_completion
-    setup_history
     if !ENV['__REPL_WRAPPED'] && system("which rlwrap > /dev/null 2> /dev/null")
       ENV['__REPL_WRAPPED'] = '0'
 
+      # set up auto-completion commands
+      completion_file = File.expand_path('~/.adb_completion')
+      File.open(completion_file, 'w') { |file| file.write(ADB_COMMANDS.join(' ')) }
+
+      # set up command history
+      if File.exists?(history_dir = File.expand_path(ENV['REPL_HISTORY_DIR'] || "~/"))
+        history_file = "#{history_dir}/.adb_history"
+      end
+
       rlargs = ""
-      rlargs << " -f #{@cfile}" if @cfile
-      rlargs << " -H #{@hfile}" if @hfile
+      rlargs << " --break-chars=" # we don't want to break any of the commands
+      rlargs << " -f #{completion_file}" if completion_file
+      rlargs << " -H #{history_file}" if history_file
 
       exec "rlwrap #{rlargs} #$0 #{ARGV.join(' ')}"
-    end
-
-    if debug?
-      print 'rlwrap ' if ENV['__REPL_WRAPPED']
-      print "-f #{@cfile} " if @cfile
-      print "-H #{@hfile} " if @hfile
-      puts ADB.inspect
     end
   end
 
