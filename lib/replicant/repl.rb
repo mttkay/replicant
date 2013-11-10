@@ -124,7 +124,7 @@ module Replicant
           history_file = "#{history_dir}/.adb_history"
         end
 
-        rlargs = ""
+        rlargs = "-c" # complete file names
         rlargs << " --break-chars=" # we don't want to break any of the commands
         rlargs << " -f #{completion_file}" if completion_file
         rlargs << " -H #{history_file}" if history_file
