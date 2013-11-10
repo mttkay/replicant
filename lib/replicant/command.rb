@@ -69,6 +69,9 @@ end
 
 class AdbCommand < Command
 
+  # the command line program
+  ADB = 'adb'
+
   def run
     begin
       cmd = "#{adb} #{args}"
@@ -89,7 +92,7 @@ class AdbCommand < Command
   private
 
   def adb
-    adb = "#{Replicant::REPL::ADB}"
+    adb = "#{ADB}"
     adb << " -s #{@repl.default_device}" if @repl.default_device
     adb
   end

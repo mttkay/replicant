@@ -6,8 +6,6 @@ module Replicant
 
     include Styles
 
-    # the command line program
-    ADB = 'adb'
     # for auto-complete via rlwrap; should probably go in Rakefile at some point
     ADB_COMMANDS = %w(devices connect disconnect push pull sync shell emu logcat
       forward jdwp install uninstall bugreport backup restore help version
