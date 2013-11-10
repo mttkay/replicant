@@ -36,6 +36,7 @@ class REPL
     command = Command.load(self, command_line)
     if command
       command.execute
+      puts span("OK.", :white_fg, :bold) { unstyled }
     else
       puts "No such command"
     end
@@ -51,9 +52,10 @@ class REPL
 
   def prompt
     prompt = ENV['REPL_PROMPT'] || begin
-      package = @default_package ? "[#{@default_package}]" : ""
-      device  = @default_device ? "@#{@default_device}" : ""
-      package + " #{device} #{span('>>', :white_fg, :bold) { styled(:green_fg) }} "
+      package = @default_package || "No package set"
+      device  = @default_device || "No device set"
+      puts "-- #{package}, #{device}"
+      "#{span('>>', :white_fg, :bold) { styled(:green_fg) }} "
     end.lstrip
   end
 

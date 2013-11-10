@@ -74,12 +74,8 @@ class AdbCommand < Command
       if interactive?
         system cmd
       else
-        if package_dependent?
-          cmd << " #{@repl.default_package}" if @repl.default_package
-        end
-        res = `#{cmd}`
-        puts res unless res.empty?
-        res
+        cmd << " #{@repl.default_package}" if @repl.default_package && package_dependent?
+        `#{cmd}`
       end
     end
   end
@@ -110,7 +106,7 @@ class DevicesCommand < Command
     adb_out = AdbCommand.new(@repl, ["devices"]).execute
     device_lines = adb_out.lines.find_all { |l| /device$/ =~ l }
     device_list = device_lines.map { |l| l.gsub("device", "").strip }
-    puts device_list.inspect if @repl.debug?
+    puts device_list
     device_list
   end
 end
