@@ -72,6 +72,8 @@ class AdbCommand < Command
   # the command line program
   ADB = 'adb'
 
+  attr_accessor :silent
+
   def run
     begin
       cmd = "#{adb} #{args}"
@@ -80,7 +82,10 @@ class AdbCommand < Command
         system cmd
       else
         cmd << " #{@repl.default_package}" if @repl.default_package && package_dependent?
-        `#{cmd}`
+        output = `#{cmd}`
+        puts cmd if @repl.debug?
+        puts output unless silent
+        output
       end
     end
   end
@@ -93,7 +98,7 @@ class AdbCommand < Command
 
   def adb
     adb = "#{ADB}"
-    adb << " -s #{@repl.default_device}" if @repl.default_device
+    adb << " -s #{@repl.default_device.id}" if @repl.default_device
     adb
   end
 
@@ -112,11 +117,21 @@ class DevicesCommand < Command
   end
 
   def run
-    adb_out = AdbCommand.new(@repl, ["devices"]).execute
-    device_lines = adb_out.lines.find_all { |l| /device$/ =~ l }
-    device_list = device_lines.map { |l| l.gsub("device", "").strip }
-    puts device_list
-    device_list
+    adb = AdbCommand.new(@repl, ["devices -l"])
+    adb.silent = true
+    adb_out = adb.execute
+
+    device_regexp  = /([\w-]+)\s+device.*model:(\w+)/
+    device_matches = adb_out.lines.map { |l| device_regexp.match(l) }.compact
+    devices = device_matches.map do |m|
+      device_id = m[1]
+      device_name = m[2].gsub('_', ' ')
+      Device.new(device_id, device_name)
+    end
+    puts ""
+    puts devices.map { |d| "#{d.id} #{' ' * (20 - d.id.length)}[#{d.name}]" } 
+    puts ""
+    devices
   end
 end
 
@@ -191,7 +206,7 @@ class DeviceCommand < Command
   end
 
   def emulators
-    devices.find_all { |d| d.start_with?("emulator-") }
+    devices.find_all { |d| d.emulator? }
   end
 
   def physical_devices
