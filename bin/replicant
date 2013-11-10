@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 require_relative '../lib/replicant'
 
-REPL.new.run
+Replicant::REPL.new.run
