@@ -80,14 +80,14 @@ For the best experience, I strongly recommend to install [rlwrap][1] to get
 command history and tab-completion. `replicant` integrates with `rlwrap` automatically;
 it's sufficient for it to just be installed.
 
-`replicant` is easily installed as a standalone script:
+To install, clone this repository then:
 
-    export REPLICANT_BIN=~/bin/replicant
-    curl -s https://raw.github.com/mttkay/replicant/latest/bin/replicant > $REPLICANT_BIN
-    chmod 755 $REPLICANT_BIN
+    $ cd replicant
+    $ chmod 755 bin/replicant
+    $ mkdir -p ~/bin/ && cd ~/bin
+    $ ln -s <path/to/repo>/bin/replicant replicant
 
-Change `$REPLICANT_BIN` to your desired location, just make
-sure it's in your `$PATH`.
+Make sure `~/bin` is in your `$PATH`.
 
 
 License
