@@ -1,3 +1,6 @@
+require 'find'
+require 'rexml/document'
+
 class REPL
 
   include Styles
@@ -17,6 +20,13 @@ class REPL
     show_greeting
     if ARGV.any? { |arg| %w( -h --help -help help ).include?(arg) }
       show_help
+    end
+
+    # try to detect a default package to work with from an AndroidManifest
+    # file somewhere close by
+    if manifest_path = detect_android_manifest_path
+      app_package = get_package_from_manifest(manifest_path)
+      PackageCommand.new(self, [app_package]).execute
     end
 
     loop do
@@ -139,5 +149,24 @@ class REPL
       print "-H #{@hfile} " if @hfile
       puts ADB.inspect
     end
+  end
+
+  # best effort function to detect the manifest path.
+  # checks for well known locations and falls back to a recursive search with
+  # a maximum depth of 2 directory levels
+  def detect_android_manifest_path
+    manifest_file = 'AndroidManifest.xml'
+    known_locations = %W(./#{manifest_file} ./src/main/#{manifest_file})
+    known_locations.find {|loc| File.exist?(loc)} || begin
+      Find.find('.') do |path|
+        Find.prune if path.start_with?('./.') || path.split('/').size > 3
+        return path if path.include?('AndroidManifest.xml')
+      end
+    end
+  end
+
+  def get_package_from_manifest(manifest_path)
+    manifest = REXML::Document.new(File.new(manifest_path))
+    manifest.root.attributes['package']
   end  
 end
