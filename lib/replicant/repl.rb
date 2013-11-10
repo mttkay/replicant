@@ -142,7 +142,7 @@ module Replicant
       known_locations.find {|loc| File.exist?(loc)} || begin
         Find.find('.') do |path|
           Find.prune if path.start_with?('./.') || path.split('/').size > 3
-          return path if path.include?('AndroidManifest.xml')
+          return path if path.include?(manifest_file)
         end
       end
     end
