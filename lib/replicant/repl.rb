@@ -57,8 +57,6 @@ module Replicant
       else
         puts "No such command"
       end
-
-      warn "Use Ctrl-D (i.e. EOF) to exit" if command_line =~ /^(exit|quit)$/
     end
 
     def debug?
@@ -93,7 +91,8 @@ module Replicant
       puts span(logo, :green_fg) { style }
       puts ""
       puts " Type #{span('!list', :green_fg) { style }} to see a list of commands."
-      puts " Commands that do not start in '!' are sent to adb verbatim."
+      puts " Commands not starting in '#{span('!', :green_fg) { style }}' are sent to adb verbatim."
+      puts " Use #{span('Ctrl-D', :green_fg) { style }} (i.e. EOF) to exit."
       puts ("~" * 70) + unstyled
     end
 
