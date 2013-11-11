@@ -4,17 +4,14 @@ class Command
 
   def self.inherited(subclass)
     @@subclasses ||= []
-    @@subclasses << subclass unless subclass == AdbCommand
-  end
-
-  def self.commands
-    @@subclasses.map do |clazz|
-      clazz.new(nil)
-    end
+    @@subclasses << subclass
   end
 
   def self.load(repl, command_line)
-    if command_line.start_with?('!')
+    if command_line == '!'
+      # load command that lists available commands
+      ListCommand.new(repl)
+    elsif command_line.start_with?('!')
       # load custom command
       command_parts = command_line[1..-1].split
       command_name = command_parts.first
@@ -27,6 +24,7 @@ class Command
         nil
       end
     else
+      # forward command to ADB
       AdbCommand.new(repl, Array(command_line.strip))
     end
   end
@@ -242,7 +240,7 @@ class ListCommand < Command
   end
 
   def run
-    command_list = Command.commands.sort_by {|c| c.name}.map do |command|
+    command_list = commands.sort_by {|c| c.name}.map do |command|
       padding = 20 - command.name.length
       desc = "#{command.name} #{' ' * padding} -- #{command.description}"
       desc << " (e.g. #{command.usage})" if command.usage
@@ -250,6 +248,15 @@ class ListCommand < Command
     end
     puts command_list.join("\n")
   end
+
+  private
+
+  def commands
+    (@@subclasses - [AdbCommand, ListCommand]).map do |clazz|
+      clazz.new(nil)
+    end
+  end
+
 end
 
 class RestartCommand < Command

@@ -90,7 +90,7 @@ module Replicant
       puts " v" + Replicant::VERSION
       puts span(logo, :green_fg) { style }
       puts ""
-      puts " Type #{span('!list', :green_fg) { style }} to see a list of commands."
+      puts " Type '#{span('!', :green_fg) { style }}' to see a list of commands."
       puts " Commands not starting in '#{span('!', :green_fg) { style }}' are sent to adb verbatim."
       puts " Use #{span('Ctrl-D', :green_fg) { style }} (i.e. EOF) to exit."
       puts ("~" * 70) + unstyled
