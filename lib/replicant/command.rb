@@ -103,7 +103,7 @@ class AdbCommand < Command
   end
 
   def interactive?
-    ["logcat", "shell"].include?(args)
+    args == "shell" || args.start_with?("logcat")
   end
 
   def package_dependent?
@@ -264,4 +264,30 @@ class RestartCommand < Command
     `killall adb`
     AdbCommand.new(@repl, "start-server").execute
   end
+end
+
+class LogcatCommand < Command
+
+  def description
+    "access device logs"
+  end
+
+  def valid_args?
+    args.empty?
+  end
+
+  def run
+    pid = if @repl.default_package
+      shell_ps = AdbCommand.new(@repl, "shell ps")
+      shell_ps.silent = true
+      processes = shell_ps.execute
+      pid_line = processes.lines.detect {|l| l.include?(@repl.default_package)}
+      pid_line.split[1].strip if pid_line
+    end
+
+    logcat = "logcat -v time"
+    logcat << " | grep -E '\(\s*#{pid}\)'"
+    AdbCommand.new(@repl, logcat).execute
+  end
+
 end
