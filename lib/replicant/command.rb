@@ -119,13 +119,13 @@ class DevicesCommand < Command
   def run
     adb = AdbCommand.new(@repl, "devices -l")
     adb.silent = true
-    adb_out = adb.execute
+    device_lines = adb.execute.lines.to_a[1..-1] # drop the first line
 
-    device_regexp  = /([\w-]+)\s+device.*model:(\w+)/
-    device_matches = adb_out.lines.map { |l| device_regexp.match(l) }.compact
+    device_regexp  = /([\S]+)\s+device(.*model:(\w+).*|.*)/
+    device_matches = device_lines.map { |l| device_regexp.match(l) }.compact
     devices = device_matches.map do |m|
       device_id = m[1]
-      device_name = m[2].gsub('_', ' ')
+      device_name = m[3].gsub('_', ' ') rescue "unknown device"
       Device.new(device_id, device_name)
     end
     puts ""
