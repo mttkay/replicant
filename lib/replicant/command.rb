@@ -35,7 +35,7 @@ class Command
 
   def initialize(repl, args = [])
     @repl = repl
-    @args = args
+    @args = Array(args)
   end
 
   def name
@@ -117,7 +117,7 @@ class DevicesCommand < Command
   end
 
   def run
-    adb = AdbCommand.new(@repl, ["devices -l"])
+    adb = AdbCommand.new(@repl, "devices -l")
     adb.silent = true
     adb_out = adb.execute
 
@@ -262,7 +262,6 @@ class RestartCommand < Command
     # IntelliJ. Moreover, start-server after kill-server sometimes makes the
     # server fail to start up unless you sleep for a second or so
     `killall adb`
-    AdbCommand.new(@repl, ["start-server"]).execute
+    AdbCommand.new(@repl, "start-server").execute
   end
 end
-

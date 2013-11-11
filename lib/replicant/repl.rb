@@ -31,7 +31,7 @@ module Replicant
       # file somewhere close by
       if manifest_path = detect_android_manifest_path
         app_package = get_package_from_manifest(manifest_path)
-        PackageCommand.new(self, [app_package]).execute
+        PackageCommand.new(self, app_package).execute
       end
 
       loop do
