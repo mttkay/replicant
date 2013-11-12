@@ -296,6 +296,7 @@ class LogcatCommand < Command
     logcat << " | grep -E '\(\s*#{pid}\)'"
     AdbCommand.new(@repl, logcat).execute
   end
+end
 
 class ClearCommand < Command
 
@@ -313,6 +314,4 @@ class ClearCommand < Command
     # Force application stop to recreate shared preferences, databases with new launch
     AdbCommand.new(@repl, "shell am force-stop #{@repl.default_package}").execute
   end
-end
-
 end
