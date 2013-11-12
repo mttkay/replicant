@@ -297,4 +297,22 @@ class LogcatCommand < Command
     AdbCommand.new(@repl, logcat).execute
   end
 
+class ClearCommand < Command
+
+  def description
+    "clear application data"
+  end
+
+  def valid_args?
+    args.empty?
+  end
+
+  def run
+    # Clear app data - cache, SharedPreferences, Databases
+    AdbCommand.new(@repl, "shell su -c \"rm -r /data/data/#{@repl.default_package}/*\"").execute
+    # Force application stop to recreate shared preferences, databases with new launch
+    AdbCommand.new(@repl, "shell am force-stop #{@repl.default_package}").execute
+  end
+end
+
 end
