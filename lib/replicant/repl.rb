@@ -34,6 +34,9 @@ module Replicant
         PackageCommand.new(self, app_package).execute
       end
 
+      # reset terminal colors on exit
+      at_exit { puts unstyled }
+
       loop do
         command_loop
       end
