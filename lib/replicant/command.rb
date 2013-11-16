@@ -296,5 +296,27 @@ class LogcatCommand < Command
     logcat << " | grep -E '\(\s*#{pid}\)'"
     AdbCommand.new(@repl, logcat).execute
   end
+end
 
+class ClearCommand < Command
+
+  def description
+    "clear application data"
+  end
+
+  def valid_args?
+    args.length == 1 || (args.length == 0 && !@repl.default_package.nil?)
+  end
+
+  def usage
+    "#{name} [com.example.package|<empty>(when default package is set)]"
+  end
+
+  def run
+    package = args.length == 1 ? args.first : @repl.default_package
+    # Clear app data - cache, SharedPreferences, Databases
+    AdbCommand.new(@repl, "shell su -c \"rm -r /data/data/#{package}/*\"").execute
+    # Force application stop to recreate shared preferences, databases with new launch
+    AdbCommand.new(@repl, "shell am force-stop #{package}").execute
+  end
 end
