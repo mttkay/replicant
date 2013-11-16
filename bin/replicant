@@ -1,4 +1,11 @@
 #!/usr/bin/env ruby
-require_relative '../lib/replicant'
+begin
+  require 'replicant'
+rescue LoadError
+  begin
+    require 'rubygems'
+    require 'replicant'
+  end
+end
 
 Replicant::REPL.new.run
