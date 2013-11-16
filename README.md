@@ -77,21 +77,22 @@ Install
 -------
 `replicant` requires Ruby 1.9 and a UNIX/Linux compatible shell such as `bash` or `zsh`.
 For the best experience, I strongly recommend to install [rlwrap][1] to get
-command history and tab-completion. `replicant` integrates with `rlwrap` automatically;
+command history and tab-completion, although it's not a requirement. 
+`replicant` integrates with `rlwrap` automatically;
 it's sufficient for it to just be installed.
 
-To install, clone this repository then:
+Replicant hasn't seen a stable release yet, so for now, has to be installed as a local Ruby gem.
+To proceed, make sure that [bundler][3] is installed on your system. (e.g. `$gem install bundler`)
+
+Clone this repository, then:
 
     $ cd replicant
-    $ chmod 755 bin/replicant
-    $ mkdir -p ~/bin/ && cd ~/bin
-    $ ln -s <path/to/repo>/bin/replicant replicant
-
-Make sure `~/bin` is in your `$PATH`.
+    $ bundle install
+    $ rake install
 
 
-Contributing to replicant
--------------------------
+Contributing
+------------
 
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
 * Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it.
@@ -110,3 +111,4 @@ further details.
 [0]: https://github.com/defunkt/repl
 [1]: http://utopia.knoware.nl/~hlub/rlwrap/
 [2]: http://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop
+[3]: http://bundler.io/
