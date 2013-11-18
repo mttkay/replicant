@@ -115,6 +115,9 @@ class DevicesCommand < Command
 
   def run
     adb = AdbCommand.new(@repl, "devices -l", :silent => true)
+    device_lines = adb.execute.lines.to_a.reject do |line|
+      line.strip.empty? || line.include?("daemon") || line.include?("List of devices")
+    end
 
     device_regexp  = /([\S]+)\s+device(.*model:(\w+).*|.*)/
     device_matches = device_lines.map { |l| device_regexp.match(l) }.compact
@@ -123,8 +126,13 @@ class DevicesCommand < Command
       device_name = m[3].gsub('_', ' ') rescue "unknown device"
       Device.new(device_id, device_name)
     end
+    device_string = if devices.any?
+      devices.map { |d| "#{d.id} #{' ' * (20 - d.id.length)}[#{d.name}]" }
+    else
+      "No devices found"
+    end
     puts ""
-    puts devices.map { |d| "#{d.id} #{' ' * (20 - d.id.length)}[#{d.name}]" } 
+    puts device_string
     puts ""
     devices
   end
