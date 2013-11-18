@@ -31,9 +31,10 @@ class Command
 
   attr_reader :args
 
-  def initialize(repl, args = [])
+  def initialize(repl, args = [], options = {})
     @repl = repl
     @args = Array(args)
+    @options = options
   end
 
   def name
@@ -70,8 +71,6 @@ class AdbCommand < Command
   # the command line program
   ADB = 'adb'
 
-  attr_accessor :silent
-
   def run
     begin
       cmd = "#{adb} #{args}"
@@ -82,7 +81,7 @@ class AdbCommand < Command
         cmd << " #{@repl.default_package}" if @repl.default_package && package_dependent?
         output = `#{cmd}`
         puts cmd if @repl.debug?
-        puts output unless silent
+        puts output unless @options[:silent]
         output
       end
     end
@@ -115,9 +114,7 @@ class DevicesCommand < Command
   end
 
   def run
-    adb = AdbCommand.new(@repl, "devices -l")
-    adb.silent = true
-    device_lines = adb.execute.lines.to_a[1..-1] # drop the first line
+    adb = AdbCommand.new(@repl, "devices -l", :silent => true)
 
     device_regexp  = /([\S]+)\s+device(.*model:(\w+).*|.*)/
     device_matches = device_lines.map { |l| device_regexp.match(l) }.compact
@@ -285,9 +282,7 @@ class LogcatCommand < Command
 
   def run
     pid = if @repl.default_package
-      shell_ps = AdbCommand.new(@repl, "shell ps")
-      shell_ps.silent = true
-      processes = shell_ps.execute
+      processes = AdbCommand.new(@repl, "shell ps", :silent => true).execute
       pid_line = processes.lines.detect {|l| l.include?(@repl.default_package)}
       pid_line.split[1].strip if pid_line
     end
