@@ -10,6 +10,8 @@ class Command
     @system_capture = cmd
     nil
   end
+  # re-route puts to not clutter test output
+  def puts(s); end
 end
 
 class CommandSpecBase < MiniTest::Spec

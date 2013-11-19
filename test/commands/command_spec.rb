@@ -44,4 +44,20 @@ class CommandSpec < CommandSpecBase
       @command.execute
     end
   end
+
+  describe "command options" do
+    before do
+      class ::TestCommand < Command
+        def run
+          output "this is a test"
+        end
+      end
+    end
+
+    it "can silence console output" do
+      command = TestCommand.new(@repl, [], :silent => true)
+      command.expects(:puts).with("this is a test").never
+      command.execute
+    end
+  end
 end

@@ -54,7 +54,7 @@ class Command
     if valid_args?
       run
     else
-      puts "Invalid arguments. Ex.: #{usage}"
+      output "Invalid arguments. Ex.: #{usage}"
     end
   end
 
