@@ -64,6 +64,10 @@ class Command
     true
   end
 
+  def output(message)
+    puts message unless @options[:silent]
+  end
+
 end
 
 class AdbCommand < Command
@@ -79,10 +83,10 @@ class AdbCommand < Command
         system cmd
       else
         cmd << " #{@repl.default_package}" if @repl.default_package && package_dependent?
-        output = `#{cmd}`
-        puts cmd if @repl.debug?
-        puts output unless @options[:silent]
-        output
+        output cmd if @repl.debug?
+        result = `#{cmd}`
+        output result
+        result
       end
     end
   end
@@ -131,9 +135,9 @@ class DevicesCommand < Command
     else
       "No devices found"
     end
-    puts ""
-    puts device_string
-    puts ""
+    output ""
+    output device_string
+    output ""
     devices
   end
 end
@@ -154,7 +158,7 @@ class PackageCommand < Command
 
   def run
     default_package = args.first
-    puts "Setting default package to #{default_package.inspect}"
+    output "Setting default package to #{default_package.inspect}"
     @repl.default_package = default_package
   end
 end
@@ -183,10 +187,10 @@ class DeviceCommand < Command
     end
 
     if default_device
-      puts "Setting default device to #{default_device.inspect}"
+      output "Setting default device to #{default_device.inspect}"
       @repl.default_device = default_device
     else
-      puts "No such device"
+      output "No such device"
     end
   end
 
@@ -251,7 +255,7 @@ class ListCommand < Command
       desc << " (e.g. #{command.usage})" if command.usage
       desc
     end
-    puts command_list.join("\n")
+    output command_list.join("\n")
   end
 
   private
