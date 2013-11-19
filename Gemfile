@@ -8,4 +8,6 @@ source "http://rubygems.org"
 group :development do
   gem "bundler", "~> 1.0"
   gem "jeweler", "~> 1.8.7"
+  gem "minitest", "~> 5.0"
+  gem "mocha", "~> 0.14.0"
 end
