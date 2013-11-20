@@ -153,11 +153,11 @@ class PackageCommand < Command
   end
 
   def valid_args?
-    args.length == 1 && /^\w+(\.\w+)*$/ =~ args.first
+    args.length == 1 && /^\w+(\.\w+)*$/ =~ args.first.strip
   end
 
   def run
-    default_package = args.first
+    default_package = args.first.strip
     output "Setting default package to #{default_package.inspect}"
     @repl.default_package = default_package
   end
