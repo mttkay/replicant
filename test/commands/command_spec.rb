@@ -28,7 +28,7 @@ class CommandSpec < CommandSpecBase
   describe "the command interface" do
     before do
       class ::TestCommand < Command; end
-      @command = TestCommand.new(@repl)
+      @command = silent TestCommand.new(@repl)
     end
 
     it "allows resolving the command name via type inspection" do
@@ -58,8 +58,7 @@ class CommandSpec < CommandSpecBase
 
     it "can silence console output" do
       command = TestCommand.new(@repl, nil, :silent => true)
-      command.expects(:puts).with("this is a test").never
-      command.execute
+      lambda { command.execute }.must_be_silent
     end
   end
 

@@ -4,7 +4,7 @@ class AdbCommandSpec < CommandSpecBase
 
   describe "a basic adb command" do
     before do
-      @command = AdbCommand.new(@repl, "devices")
+      @command = silent AdbCommand.new(@repl, "devices")
       @command.execute
     end
 
@@ -43,13 +43,13 @@ class AdbCommandSpec < CommandSpecBase
     end
 
     it "does not set the default package if command is not package dependent" do
-      command = AdbCommand.new(@repl, "devices")
+      command = silent AdbCommand.new(@repl, "devices")
       command.execute
       command.backtick_capture.must_equal "adb devices"
     end
 
     it "adds the default package if command is package dependent" do
-      command = AdbCommand.new(@repl, "uninstall")
+      command = silent AdbCommand.new(@repl, "uninstall")
       command.execute
       command.backtick_capture.must_equal "adb uninstall com.myapp"
     end
