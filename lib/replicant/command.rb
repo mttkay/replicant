@@ -15,7 +15,7 @@ class Command
       # load custom command
       command_parts = command_line[1..-1].split
       command_name = command_parts.first
-      command_args = command_parts[1..-1]
+      command_args = command_parts[1..-1].join(' ')
       command_class = "#{command_name.capitalize}Command"
       begin
         clazz = Object.const_get(command_class)
@@ -25,15 +25,15 @@ class Command
       end
     else
       # forward command to ADB
-      AdbCommand.new(repl, Array(command_line.strip))
+      AdbCommand.new(repl, command_line.strip)
     end
   end
 
   attr_reader :args
 
-  def initialize(repl, args = [], options = {})
+  def initialize(repl, args = nil, options = {})
     @repl = repl
-    @args = Array(args)
+    @args = args.strip if args
     @options = options
   end
 
@@ -89,10 +89,6 @@ class AdbCommand < Command
         result
       end
     end
-  end
-
-  def args
-    @args.first
   end
 
   private
@@ -153,13 +149,12 @@ class PackageCommand < Command
   end
 
   def valid_args?
-    args.length == 1 && /^\w+(\.\w+)*$/ =~ args.first.strip
+    args.present? && /^\w+(\.\w+)*$/ =~ args
   end
 
   def run
-    default_package = args.first.strip
-    output "Setting default package to #{default_package.inspect}"
-    @repl.default_package = default_package
+    output "Setting default package to #{args.inspect}"
+    @repl.default_package = args
   end
 end
 
@@ -173,7 +168,7 @@ class DeviceCommand < Command
   end
 
   def valid_args?
-    args.length == 1 && (devices.include?(args.first.strip) || emu_shortcut || dev_shortcut)
+    args.present? && (devices.include?(args) || emu_shortcut || dev_shortcut)
   end
 
   def run
@@ -183,7 +178,7 @@ class DeviceCommand < Command
       dev_number = shortcut.first[1].to_i
       shortcut.last[dev_number - 1]
     else
-      args.first
+      args
     end
 
     if default_device
@@ -201,11 +196,11 @@ class DeviceCommand < Command
   end
 
   def emu_shortcut
-    /^emu(\d)+/.match(args.first)
+    /^emu(\d)+/.match(args)
   end
 
   def dev_shortcut
-    /^dev(\d)+/.match(args.first)
+    /^dev(\d)+/.match(args)
   end
 
   def devices
@@ -229,7 +224,7 @@ class ResetCommand < Command
   end
 
   def valid_args?
-    args.empty?
+    args.blank?
   end
 
   def run
@@ -241,7 +236,7 @@ end
 
 class ListCommand < Command
   def valid_args?
-    args.empty?
+    args.blank?
   end
 
   def description
@@ -289,7 +284,7 @@ class LogcatCommand < Command
   end
 
   def valid_args?
-    args.empty?
+    args.blank?
   end
 
   def run
@@ -311,8 +306,9 @@ class ClearCommand < Command
     "clear application data"
   end
 
+  # TODO: this is not a very good argument validator
   def valid_args?
-    args.length == 1 || (args.length == 0 && !@repl.default_package.nil?)
+    args.present? || @repl.default_package
   end
 
   def usage
@@ -320,7 +316,7 @@ class ClearCommand < Command
   end
 
   def run
-    package = args.length == 1 ? args.first : @repl.default_package
+    package = args.present? ? args : @repl.default_package
     # Clear app data - cache, SharedPreferences, Databases
     AdbCommand.new(@repl, "shell su -c \"rm -r /data/data/#{package}/*\"").execute
     # Force application stop to recreate shared preferences, databases with new launch

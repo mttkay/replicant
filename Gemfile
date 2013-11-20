@@ -5,6 +5,8 @@ source "http://rubygems.org"
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
+gem "activesupport-core-ext", "~> 4.0", :require => false
+
 group :development do
   gem "rake", "~> 10.1"
   gem "bundler", "~> 1.0"

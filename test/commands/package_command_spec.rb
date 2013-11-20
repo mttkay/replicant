@@ -14,12 +14,6 @@ class PackageCommandSpec < CommandSpecBase
       command.execute
       @repl.default_package.must_equal "com.myapp"
     end
-
-    it "strips blank characters from valid input" do
-      command = PackageCommand.new(@repl, " com.myapp   ")
-      command.execute
-      @repl.default_package.must_equal "com.myapp"
-    end
   end
 
   describe "with invalid arguments" do

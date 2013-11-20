@@ -17,9 +17,11 @@ class CommandSpec < CommandSpecBase
       command.must_be_instance_of AdbCommand
     end
 
-    it "injects the arguments for loaded command objects" do
-      command = Command.load(@repl, "shell ps")
-      command.args.must_equal "shell ps"
+    describe "arguments" do
+      it "injects the arguments for loaded command objects" do
+        command = Command.load(@repl, "shell ps")
+        command.args.must_equal "shell ps"
+      end
     end
   end
 
@@ -55,9 +57,16 @@ class CommandSpec < CommandSpecBase
     end
 
     it "can silence console output" do
-      command = TestCommand.new(@repl, [], :silent => true)
+      command = TestCommand.new(@repl, nil, :silent => true)
       command.expects(:puts).with("this is a test").never
       command.execute
+    end
+  end
+
+  describe "arguments" do
+    it "strips argument whitespace when creating command instance" do
+      command = TestCommand.new(@repl, " ")
+      command.args.must_equal ""
     end
   end
 end
