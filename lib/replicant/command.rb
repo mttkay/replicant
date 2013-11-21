@@ -119,22 +119,49 @@ class DevicesCommand < Command
       line.strip.empty? || line.include?("daemon") || line.include?("List of devices")
     end
 
-    device_regexp  = /([\S]+)\s+device(.*model:(\w+).*|.*)/
-    device_matches = device_lines.map { |l| device_regexp.match(l) }.compact
-    devices = device_matches.map do |m|
-      device_id = m[1]
-      device_name = m[3].gsub('_', ' ') rescue "unknown device"
-      Device.new(device_id, device_name)
+    device_ids = device_lines.map { |l| /([\S]+)\s+device/.match(l)[1] }
+    device_products = device_lines.map { |l| /product:([\S]+)/.match(l).try(:[], 1) }
+
+    device_names = device_lines.zip(device_ids).map do |l, id|
+      /model:([\S]+)/.match(l).try(:[], 1) || detect_device_name(id)
     end
+
+    devices = device_ids.zip(device_names, device_products).map do |id, name, product|
+      Device.new(id, humanize_name(name, product))
+    end
+
+    output ""
+    output devices_string(devices)
+    output ""
+    devices
+  end
+
+  private
+
+  def detect_device_name(id)
+    if id.start_with?("emulator-")
+      "Android emulator"
+    else
+      "Unknown device"
+    end
+  end
+
+  def humanize_name(name_string, product)
+    if product == "vbox86p"
+      "Genymotion " + name_string.gsub(/___[\d_]+___/, "_")
+    else
+      name_string
+    end.gsub('_', ' ').squish
+  end
+
+  def devices_string(devices)
     device_string = if devices.any?
-      devices.map { |d| "#{d.id} #{' ' * (20 - d.id.length)}[#{d.name}]" }
+      padding = devices.map { |d| d.name.length }.max
+      indices = (0..devices.length - 1).to_a
+      indices.zip(devices).map { |i, d| "[#{i}] #{d.name}#{' ' * (padding - d.name.length)} | #{d.id}" }
     else
       "No devices found"
     end
-    output ""
-    output device_string
-    output ""
-    devices
   end
 end
 
