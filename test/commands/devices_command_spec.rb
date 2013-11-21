@@ -28,16 +28,35 @@ OUTPUT
 class DevicesCommandSpec < CommandSpecBase
 
   describe "when no devices were found" do
-    it "prints a message and exits" do
+    before do
       AdbCommand.any_instance.expects(:execute).returns(ADB_NO_DEVICES)
+    end
+
+    it "returns an empty device list" do
+      command = silent DevicesCommand.new(@repl)
+      command.execute.must_equal []
+    end
+
+    it "prints a message and exits" do
       command = DevicesCommand.new(@repl)
       lambda { command.execute }.must_output("\nNo devices found\n\n")
     end
   end
 
   describe "when devices were found" do
-    it "outputs a prettified, indexed list of devices" do
+    before do
       AdbCommand.any_instance.expects(:execute).returns(ADB_DEVICES)
+    end
+
+    it "returns the list of devices" do
+      command = silent DevicesCommand.new(@repl)
+      devices = command.execute
+      devices.map { |d| d.id }.must_equal [
+        "192.168.56.101:5555", "005de387d71505d6", "emulator-5554"
+      ]
+    end
+
+    it "outputs a prettified, indexed list of devices" do
       command = DevicesCommand.new(@repl)
       lambda { command.execute }.must_output(REPLICANT_DEVICES)
     end

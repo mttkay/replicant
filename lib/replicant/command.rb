@@ -191,21 +191,20 @@ class DeviceCommand < Command
   end
 
   def usage
-    "#{name} [emulator-5554|emu1|<serial>|dev1|...]"
+    "#{name} [<index>|<device_id>]"
   end
 
   def valid_args?
-    args.present? && (devices.include?(args) || emu_shortcut || dev_shortcut)
+    args.present? && /\S+/ =~ args
   end
 
   def run
-    shortcut = detect_shortcut
-    default_device = if shortcut
-      # e.g. emu1 or dev2
-      dev_number = shortcut.first[1].to_i
-      shortcut.last[dev_number - 1]
+    default_device = if index?
+      # user selected by index
+      devices[args.to_i]
     else
-      args
+      # user selected by device ID
+      devices.detect { |d| d.id == args }
     end
 
     if default_device
@@ -218,28 +217,12 @@ class DeviceCommand < Command
 
   private
 
-  def detect_shortcut
-    [[emu_shortcut, emulators], [dev_shortcut, physical_devices]].find { |s| !s.first.nil? }
-  end
-
-  def emu_shortcut
-    /^emu(\d)+/.match(args)
-  end
-
-  def dev_shortcut
-    /^dev(\d)+/.match(args)
+  def index?
+    /^\d+$/ =~ args
   end
 
   def devices
-    @devices ||= DevicesCommand.new(@repl).execute
-  end
-
-  def emulators
-    devices.find_all { |d| d.emulator? }
-  end
-
-  def physical_devices
-    devices - emulators
+    @devices ||= DevicesCommand.new(@repl, nil, :silent => true).execute
   end
 
 end
