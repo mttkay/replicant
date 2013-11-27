@@ -8,7 +8,7 @@ class Command
   end
 
   def self.all
-    (@@subclasses - [AdbCommand, ListCommand]).map do |clazz|
+    (@@subclasses - [AdbCommand, ListCommand, EnvCommand]).map do |clazz|
       clazz.new(nil)
     end
   end
@@ -17,6 +17,8 @@ class Command
     if command_line == '!'
       # load command that lists available commands
       ListCommand.new(repl)
+    elsif command_line == '?'
+      EnvCommand.new(repl)
     elsif command_line.start_with?('!')
       # load custom command
       command_parts = command_line[1..-1].split
@@ -327,5 +329,24 @@ class ClearCommand < Command
     AdbCommand.new(@repl, "shell su -c \"rm -r /data/data/#{package}/*\"").execute
     # Force application stop to recreate shared preferences, databases with new launch
     AdbCommand.new(@repl, "shell am force-stop #{package}").execute
+  end
+end
+
+class EnvCommand < Command
+
+  def valid_args?
+    args.blank?
+  end
+
+  def run
+    env = "Package: #{@repl.default_package || 'Not set'}\n"
+    env << "Device: "
+    device = @repl.default_device
+    env << if device
+      "#{device.name} (#{device.id})"
+    else
+      'Not set'
+    end
+    output env
   end
 end

@@ -3,6 +3,11 @@ require 'helper'
 class CommandSpec < CommandSpecBase
 
   describe "command loading" do
+    it "loads the EnvCommand when command is '?'" do
+      command = Command.load(@repl, "?")
+      command.must_be_instance_of EnvCommand
+    end
+
     it "loads the ListCommand when command is '!'" do
       command = Command.load(@repl, "!")
       command.must_be_instance_of ListCommand
@@ -22,6 +27,20 @@ class CommandSpec < CommandSpecBase
         command = Command.load(@repl, "shell ps")
         command.args.must_equal "shell ps"
       end
+    end
+  end
+
+  describe "command listing" do
+    it "does not include the ListCommand" do
+      Command.all.map{|c|c.class}.wont_include(ListCommand)
+    end
+
+    it "does not include the AdbCommand" do
+      Command.all.map{|c|c.class}.wont_include(AdbCommand)
+    end
+
+    it "does not include the EnvCommand" do
+      Command.all.map{|c|c.class}.wont_include(EnvCommand)
     end
   end
 

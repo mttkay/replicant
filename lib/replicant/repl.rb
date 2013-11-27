@@ -70,15 +70,14 @@ module Replicant
 
     def prompt
       prompt = ENV['REPL_PROMPT'] || begin
-        package = @default_package || "No package set"
-        device  = @default_device || "No device set"
-        puts "#{unstyled}-- #{package}, #{device}"
         span('>> ', :white_fg, :bold) { styled(:green_fg) }
       end.lstrip
     end
 
     def show_greeting
       style = styled(:white_fg, :black_bg, :bold)
+      green = lambda { |text| span(text, :green_fg) { style } }
+
       logo = <<-logo
                             dP oo                              dP
                             88                                 88
@@ -91,11 +90,11 @@ module Replicant
       logo
       puts style + ("~" * 70)
       puts " v" + Replicant::VERSION
-      puts span(logo, :green_fg) { style }
+      puts green[logo]
       puts ""
-      puts " Type '#{span('!', :green_fg) { style }}' to see a list of commands."
-      puts " Commands not starting in '#{span('!', :green_fg) { style }}' are sent to adb verbatim."
-      puts " Use #{span('Ctrl-D', :green_fg) { style }} (i.e. EOF) to exit."
+      puts " Type '#{green['!']}' to see a list of commands, '#{green['?']}' for environment info."
+      puts " Commands not starting in '#{green['!']}' are sent to adb verbatim."
+      puts " Use #{green['Ctrl-D']} (i.e. EOF) to exit."
       puts ("~" * 70) + unstyled
     end
 
