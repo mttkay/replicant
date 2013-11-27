@@ -1,5 +1,7 @@
 replicant - a repl for adb
 ==========================
+[![Gem Version](https://badge.fury.io/rb/replicant-adb.png)](http://badge.fury.io/rb/replicant-adb)
+[![Build Status](https://travis-ci.org/mttkay/replicant.png)](https://travis-ci.org/mttkay/replicant)
 
 `replicant` is an interactive shell (a [REPL][2]) for `adb`, the Android Debug Bridge.
 It is partially based on Chris Wanstrath's excellent [repl][0] command line wrapper.
@@ -76,8 +78,6 @@ If all requirements are met, you can install `replicant` as a Ruby gem:
 
 Contributing
 ------------
-
-[![Build Status](https://travis-ci.org/mttkay/replicant.png)](https://travis-ci.org/mttkay/replicant)
 
 Please hack on replicant and make it better and more feature complete!
 Here's a general list of guidelines you should follow:
