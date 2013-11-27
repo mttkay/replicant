@@ -19,7 +19,12 @@ class CommandSpecBase < MiniTest::Spec
   end
 
   def silent(command)
-    def command.output(s); end
+    def command.output(s)
+      @output = s
+    end
+    def command.output_capture
+      @output
+    end
     command
   end
 end
