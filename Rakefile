@@ -16,7 +16,7 @@ require 'rake'
 require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
-  gem.name = "replicant"
+  gem.name = "replicant-adb"
   gem.version = Replicant::VERSION
   gem.homepage = "https://github.com/mttkay/replicant"
   gem.license = "MIT"
