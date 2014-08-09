@@ -87,7 +87,7 @@ class AdbCommand < Command
     begin
       cmd = "#{adb} #{args}"
 
-      if interactive?
+      if require_subshell?
         system cmd
       else
         cmd << " #{@repl.default_package}" if @repl.default_package && package_dependent?
@@ -107,7 +107,7 @@ class AdbCommand < Command
     adb
   end
 
-  def interactive?
+  def require_subshell?
     args == "shell" || args.start_with?("logcat")
   end
 
@@ -287,6 +287,8 @@ end
 
 class LogcatCommand < Command
 
+  LOGFILE = "device_logs"
+
   def description
     "access device logs"
   end
@@ -302,8 +304,11 @@ class LogcatCommand < Command
       pid_line.split[1].strip if pid_line
     end
 
-    logcat = "logcat -v time"
-    logcat << " | grep -E '\(\s*#{pid}\)'"
+    system "rm -f #{LOGFILE} && mkfifo #{LOGFILE}"
+
+    logcat = "logcat -v time | egrep --line-buffered "
+    logcat << if pid then "'\(\s*#{pid}\)'" else "'.*'" end
+    logcat << " >> #{LOGFILE} &"
     AdbCommand.new(@repl, logcat).execute
   end
 end
