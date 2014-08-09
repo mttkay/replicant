@@ -24,7 +24,7 @@ Jeweler::Tasks.new do |gem|
   gem.description = "replicant is an interactive shell (a REPL) for ADB, the Android Debug Bridge"
   gem.email = "m.kaeppler@gmail.com"
   gem.authors = ["Matthias Kaeppler"]
-  gem.files.exclude 'screenshots/**'
+  gem.files = ["lib/**/*.rb", "LICENSE.txt"]
   # dependencies defined in Gemfile
 end
 Jeweler::RubygemsDotOrgTasks.new
