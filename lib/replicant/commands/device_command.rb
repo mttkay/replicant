@@ -66,6 +66,15 @@ class DeviceCommand < Command
     # redirect logcat to fifo pipe
     i = IO.popen(AdbCommand.new(@repl, "logcat -v time").command)
     o = open(LOGFILE, 'w+')
+
+    # clear logcat
+    AdbCommand.new(@repl, "logcat -c", :silent => true).execute
+
+    o.puts "==================================================================="
+    o.puts " Now logging: #{@repl.default_device.name}"
+    o.puts "==================================================================="
+    o.flush
+
     @@logging_threads << Thread.new do
       i.each_line do |line|
         # ts = line[/^\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}/]
