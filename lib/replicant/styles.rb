@@ -13,17 +13,15 @@ module Styles
     :bold => 1
   }
 
-  def span(text, *styles)
-    styled = "\e[#{STYLES.values_at(*styles).join(';')}m#{text}"
-    styled << yield if block_given?
-    styled
+  def styled_text(text, *styles)
+    create_style(*styles) + text + if block_given? then yield else end_style end
   end
 
-  def styled(*styles)
+  def create_style(*styles)
     "\e[#{STYLES.values_at(*styles).join(';')}m"
   end
 
-  def unstyled
+  def end_style
     "\e[0m"
   end
 

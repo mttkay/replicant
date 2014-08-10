@@ -35,7 +35,7 @@ module Replicant
       end
 
       # reset terminal colors on exit
-      at_exit { puts unstyled }
+      at_exit { puts end_style }
 
       loop do
         command_loop
@@ -56,7 +56,7 @@ module Replicant
       command = Command.load(self, command_line)
       if command
         command.execute
-        puts span("OK.", :white_fg, :bold) { unstyled }
+        puts styled_text("OK.", :white_fg, :bold)
       else
         puts "No such command"
       end
@@ -70,13 +70,13 @@ module Replicant
 
     def prompt
       prompt = ENV['REPL_PROMPT'] || begin
-        span('>> ', :white_fg, :bold) { styled(:green_fg) }
+        styled_text('>> ', :white_fg, :bold) { create_style(:green_fg) }
       end.lstrip
     end
 
     def show_greeting
-      style = styled(:white_fg, :black_bg, :bold)
-      green = lambda { |text| span(text, :green_fg) { style } }
+      style = create_style(:white_fg, :black_bg, :bold)
+      green = lambda { |text| styled_text(text, :green_fg) { style } }
 
       logo = <<-logo
                             dP oo                              dP
@@ -95,7 +95,7 @@ module Replicant
       puts " Type '#{green['!']}' to see a list of commands, '#{green['?']}' for environment info."
       puts " Commands not starting in '#{green['!']}' are sent to adb verbatim."
       puts " Use #{green['Ctrl-D']} (i.e. EOF) to exit."
-      puts ("~" * 70) + unstyled
+      puts ("~" * 70) + end_style
     end
 
     def show_help
