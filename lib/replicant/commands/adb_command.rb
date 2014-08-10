@@ -1,11 +1,8 @@
 class AdbCommand < Command
 
-  # the command line program
-  ADB = 'adb'
-
   def run
     begin
-      cmd = "#{adb} #{args}"
+      cmd = "#{command}"
 
       if require_subshell?
         system cmd
@@ -19,13 +16,14 @@ class AdbCommand < Command
     end
   end
 
-  private
-
-  def adb
-    adb = "#{ADB}"
+  def command
+    adb = "adb"
     adb << " -s #{@repl.default_device.id}" if @repl.default_device
+    adb << " #{args}"
     adb
   end
+
+  private
 
   def require_subshell?
     args == "shell" || args.start_with?("logcat")
