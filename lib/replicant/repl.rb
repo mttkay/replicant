@@ -75,7 +75,7 @@ module Replicant
     end
 
     def show_greeting
-      style = create_style(:white_fg, :black_bg, :bold)
+      style = create_style(:white_fg, :bold)
       green = lambda { |text| styled_text(text, :green_fg) { style } }
 
       logo = <<-logo

@@ -32,7 +32,7 @@ class DeviceCommand < Command
     if default_device
       @repl.default_device = default_device
       output "Default device set to #{default_device.name}"
-      redirect_device_logs!
+      transform_device_logs(*redirect_device_logs)
       output "Logs are available at #{LOGFILE}"
     else
       output "No such device"
@@ -49,9 +49,12 @@ class DeviceCommand < Command
     @devices ||= DevicesCommand.new(@repl, nil, :silent => true).execute
   end
 
-  def redirect_device_logs!
+  def redirect_device_logs
     # kill any existing logging threads
     @@logging_threads.select! { |t| t.exit }
+
+    # create logging pipe if needed
+    system "if ! [ -p #{LOGFILE} ]; then mkfifo #{LOGFILE}; fi"
 
     # detect process ID by package name so we can filter by it
     pid = if @repl.default_package
@@ -60,30 +63,61 @@ class DeviceCommand < Command
       pid_line.split[1].strip if pid_line
     end
 
-    # create logging pipe if needed
-    system "if ! [ -p #{LOGFILE} ]; then mkfifo #{LOGFILE}; fi"
-
-    # redirect logcat to fifo pipe
-    i = IO.popen(AdbCommand.new(@repl, "logcat -v time").command)
-    o = open(LOGFILE, 'w+')
-
-    # clear logcat
+    # clear existing logs
     AdbCommand.new(@repl, "logcat -c", :silent => true).execute
 
+    # redirect logcat to fifo pipe
+    logcat = "logcat -v time"
+    logcat << " | egrep --line-buffered '\(\s*#{pid}\)'" if pid
+
+    i = IO.popen(AdbCommand.new(@repl, logcat).command)
+    o = open(LOGFILE, 'w+')
+
+    [i, o]
+  end
+
+  def transform_device_logs(i, o)
     o.puts "==================================================================="
     o.puts " Now logging: #{@repl.default_device.name}"
     o.puts "==================================================================="
     o.flush
 
+    log_segment = lambda do |segment, *styles|
+      o.print(create_style(*styles))
+      o.print(segment)
+      o.print(end_style)
+    end
+
+    timestamp = /^\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}/
+    process = /(\w){1}\/(.*)(\([\s0-9]+\):)/
+
+    Thread.abort_on_exception = true
     @@logging_threads << Thread.new do
-      i.each_line do |line|
-        # ts = line[/^\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}/]
-        # o.print(create_style(:green_fg))
-        # o.print(ts)
-        # o.print(end_style)
-        # o.print("\n")
-        o.puts(line)
-        o.flush
+      begin
+        i.each_line do |line|
+          ts_segment = line[timestamp]
+
+          if ts_segment # found proper log line
+            log_segment[" #{ts_segment} ", :white_bg, :bold]
+
+            process_segment = process.match(line)
+            # log level
+            log_segment[" #{process_segment[1]} ", :black_bg, :yellow_fg, :bold]
+            # log tag
+            log_segment["#{process_segment[2]} ", :black_bg, :cyan_fg, :bold]
+            # log remaining line
+            remainder = [timestamp, process].reduce(line) { |l,r| l.gsub(r, '') }.strip
+            log_segment[" #{remainder}\n", :white_fg]
+
+            o.flush
+          else # other log line, print as is
+            o.puts(line)
+          end
+        end
+      rescue Exception => e
+        puts e.inspect
+        puts e.backtrace.join("\n")
+        raise e
       end
     end
   end
