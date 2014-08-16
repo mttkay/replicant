@@ -57,7 +57,7 @@ class DeviceCommand < Command
     system "if ! [ -p #{LOGFILE} ]; then mkfifo #{LOGFILE}; fi"
 
     # detect process ID by package name so we can filter by it
-    pid = if @repl.default_package
+    @pid = if @repl.default_package
       processes = AdbCommand.new(@repl, "shell ps", :silent => true).execute
       pid_line = processes.lines.detect {|l| l.include?(@repl.default_package)}
       pid_line.split[1].strip if pid_line
@@ -68,7 +68,6 @@ class DeviceCommand < Command
 
     # redirect logcat to fifo pipe
     logcat = "logcat -v time"
-    logcat << " | egrep --line-buffered '\(\s*#{pid}\)'" if pid
 
     i = IO.popen(AdbCommand.new(@repl, logcat).command)
     o = open(LOGFILE, 'w+')
@@ -79,6 +78,7 @@ class DeviceCommand < Command
   def transform_device_logs(i, o)
     o.puts "==================================================================="
     o.puts " Now logging: #{@repl.default_device.name}"
+    o.puts " Process: #{@pid ? @repl.default_package : 'all'}"
     o.puts "==================================================================="
     o.flush
 
@@ -89,7 +89,7 @@ class DeviceCommand < Command
     end
 
     timestamp = /^\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}/
-    process = /(\w){1}\/(.*)(\([\s0-9]+\):)/
+    process = /(\w){1}\/(.*)\(\s*([0-9]+)\):\s/
 
     Thread.abort_on_exception = true
     @@logging_threads << Thread.new do
@@ -101,14 +101,20 @@ class DeviceCommand < Command
             log_segment[" #{ts_segment} ", :white_bg, :bold]
 
             process_segment = process.match(line)
-            # log level
-            log_segment[" #{process_segment[1]} ", :black_bg, :yellow_fg, :bold]
-            # log tag
-            log_segment["#{process_segment[2]} ", :black_bg, :cyan_fg, :bold]
-            # log remaining line
-            remainder = [timestamp, process].reduce(line) { |l,r| l.gsub(r, '') }.strip
-            log_segment[" #{remainder}\n", :white_fg]
+            pid = process_segment[3]
 
+            if @pid && @pid != pid
+              log_segment[" [muted]"]
+            else
+              # log level
+              log_segment[" #{process_segment[1]} ", :black_bg, :yellow_fg, :bold]
+              # log tag
+              log_segment["#{process_segment[2]} ", :black_bg, :cyan_fg, :bold]
+              # log remaining line
+              remainder = [timestamp, process].reduce(line) { |l,r| l.gsub(r, '') }.strip
+              log_segment[" #{remainder}", :white_fg]
+            end
+            o.write "\n"
             o.flush
           else # other log line, print as is
             o.puts(line)
