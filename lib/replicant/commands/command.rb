@@ -76,4 +76,8 @@ class Command
     puts message unless @options[:silent]
   end
 
+  def putsd(message)
+    puts "[DEBUG] #{message}" if @repl.debug?
+  end
+
 end

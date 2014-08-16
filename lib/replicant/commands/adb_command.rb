@@ -8,7 +8,7 @@ class AdbCommand < Command
         system cmd
       else
         cmd << " #{@repl.default_package}" if @repl.default_package && package_dependent?
-        output cmd if @repl.debug?
+        putsd cmd
         result = `#{cmd}`
         output result
         result

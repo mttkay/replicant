@@ -1,5 +1,7 @@
 module Styles
 
+  CONSOLE_WIDTH = 70
+
   STYLES = {
     # foreground text
     :black_fg   => 30,

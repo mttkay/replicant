@@ -4,6 +4,9 @@ require 'rexml/document'
 module Replicant
   class REPL
 
+    Encoding.default_external = Encoding::UTF_8
+    Encoding.default_internal = Encoding::UTF_8
+
     include Styles
 
     # for auto-complete via rlwrap; should probably go in Rakefile at some point
@@ -88,14 +91,14 @@ module Replicant
                    88
                    dP                    (c) 2013 Matthias Kaeppler
       logo
-      puts style + ("~" * 70)
+      puts style + ("~" * Styles::CONSOLE_WIDTH)
       puts " v" + Replicant::VERSION
       puts green[logo]
       puts ""
       puts " Type '#{green['!']}' to see a list of commands, '#{green['?']}' for environment info."
       puts " Commands not starting in '#{green['!']}' are sent to adb verbatim."
       puts " Use #{green['Ctrl-D']} (i.e. EOF) to exit."
-      puts ("~" * 70) + end_style
+      puts ("~" * Styles::CONSOLE_WIDTH) + end_style
     end
 
     def show_help

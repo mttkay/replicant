@@ -6,7 +6,7 @@ class DeviceCommand < Command
 
   LOGFILE = "/tmp/replicant_device"
 
-  @@logging_threads = []
+  @@threads = []
 
   def description
     "set a default device to work with"
@@ -32,7 +32,19 @@ class DeviceCommand < Command
     if default_device
       @repl.default_device = default_device
       output "Default device set to #{default_device.name}"
-      transform_device_logs(*redirect_device_logs)
+
+      Thread.abort_on_exception = true
+      # kill any existing threads
+      putsd "Found #{@@threads.size} zombie threads, killing..." unless @@threads.empty?
+      @@threads.select! { |t| t.exit }
+
+      i, o = redirect_device_logs
+
+      @pid = find_pid(o)
+      scan_pid!(o)
+
+      transform_device_logs!(i, o)
+
       output "Logs are available at #{LOGFILE}"
     else
       output "No such device"
@@ -49,22 +61,43 @@ class DeviceCommand < Command
     @devices ||= DevicesCommand.new(@repl, nil, :silent => true).execute
   end
 
-  def redirect_device_logs
-    # kill any existing logging threads
-    @@logging_threads.select! { |t| t.exit }
+  def find_pid(logfile)
+    putsd "Scanning for PID..."
+    processes = AdbCommand.new(@repl, "shell ps", :silent => true).execute
+    pid_line = processes.lines.detect {|l| l.include?(@repl.default_package)}
+    if pid_line
+      pid_line.split[1].strip.tap do |pid|
+        log_state_change!(logfile, "#{@repl.default_package} (pid = #{pid})") if pid != @pid
+        pid
+      end
+    else
+      log_state_change!(logfile, "<all>") if @pid
+      nil
+    end
+  end
 
+  def scan_pid!(logfile)
+    @@threads << Thread.new do 
+      begin
+        while @repl.default_package
+          @pid = find_pid(logfile)
+          sleep 2
+        end
+      rescue Exception => e
+        puts e.inspect
+        puts e.backtrace.join("\n")
+        raise e
+      end
+    end
+  end
+
+  def clear_logs!
+    AdbCommand.new(@repl, "logcat -c", :silent => true).execute
+  end
+
+  def redirect_device_logs
     # create logging pipe if needed
     system "if ! [ -p #{LOGFILE} ]; then mkfifo #{LOGFILE}; fi"
-
-    # detect process ID by package name so we can filter by it
-    @pid = if @repl.default_package
-      processes = AdbCommand.new(@repl, "shell ps", :silent => true).execute
-      pid_line = processes.lines.detect {|l| l.include?(@repl.default_package)}
-      pid_line.split[1].strip if pid_line
-    end
-
-    # clear existing logs
-    AdbCommand.new(@repl, "logcat -c", :silent => true).execute
 
     # redirect logcat to fifo pipe
     logcat = "logcat -v time"
@@ -75,13 +108,22 @@ class DeviceCommand < Command
     [i, o]
   end
 
-  def transform_device_logs(i, o)
-    o.puts "==================================================================="
-    o.puts " Now logging: #{@repl.default_device.name}"
-    o.puts " Process: #{@pid ? @repl.default_package : 'all'}"
-    o.puts "==================================================================="
+  def log_message!(o, message)
+    o.puts "*" * Styles::CONSOLE_WIDTH
+    o.puts " #{message}"
+    o.puts "*" * Styles::CONSOLE_WIDTH
     o.flush
+  end
 
+  def log_state_change!(o, change)
+    msg = "Detected change in device or target package\n"
+    msg << "-" * Styles::CONSOLE_WIDTH
+    msg << "\n   --> device  = #{@repl.default_device.name}"
+    msg << "\n   --> process = #{change}"
+    log_message!(o, msg)
+  end
+
+  def transform_device_logs!(i, o)
     log_segment = lambda do |segment, *styles|
       o.print(create_style(*styles))
       o.print(segment)
@@ -91,21 +133,20 @@ class DeviceCommand < Command
     timestamp = /^\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}/
     process = /(\w){1}\/(.*)\(\s*([0-9]+)\):\s/
 
-    Thread.abort_on_exception = true
-    @@logging_threads << Thread.new do
+    @@threads << Thread.new do
       begin
         i.each_line do |line|
           ts_segment = line[timestamp]
 
           if ts_segment # found proper log line
-            log_segment[" #{ts_segment} ", :white_bg, :bold]
-
             process_segment = process.match(line)
             pid = process_segment[3]
 
-            if @pid && @pid != pid
-              log_segment[" [muted]"]
+            if @repl.debug? && @pid && @pid != pid
+              log_segment[" #{ts_segment} ", :black_fg]
+              log_segment[" [muted]", :black_fg]
             else
+              log_segment[" #{ts_segment} ", :white_bg, :bold]
               # log level
               log_segment[" #{process_segment[1]} ", :black_bg, :yellow_fg, :bold]
               # log tag
