@@ -3,3 +3,4 @@
 *.gemspec
 .rvmrc
 Gemfile.lock
+.ruby-*
