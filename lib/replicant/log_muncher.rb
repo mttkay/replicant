@@ -27,8 +27,7 @@ class LogMuncher
     Thread.new do
       begin
         i.each_line do |line|
-          transform_line(o, line)
-          o.flush
+          log_line(o, line)
         end
       rescue Exception => e
         puts e.inspect
@@ -38,37 +37,49 @@ class LogMuncher
     end
   end
 
-  private def transform_line(o, line)
-    log_segment = lambda do |segment, *styles|
+  private def log_line(o, line)
+    transform_line(line).each do |seg|
+      text = seg.first
+      styles = seg.last
       o.print(create_style(*styles))
-      o.print(segment)
+      o.print(text)
       o.print(end_style)
     end
+    o.flush
+  end
 
-    ts_segment = line[TIMESTAMP_PATTERN]
+  private def transform_line(line)
+    segments = []
+    
+    timestamp = line[TIMESTAMP_PATTERN]
 
-    if ts_segment # found proper log line
-      process_segment = PROCESS_PATTERN.match(line)
-      pid = process_segment[3]
+    if timestamp # found proper log line
+      process = PROCESS_PATTERN.match(line)
+      pid = process[3]
 
       if @current_pid.nil? || @current_pid == pid
-        log_segment[" #{ts_segment} ", :white_bg, :bold]
+        segments << [" #{timestamp} ", [:white_bg, :bold]]
         # log level
-        log_segment[" #{process_segment[1]} ", :black_bg, :yellow_fg, :bold]
+        level = process[1]
+        level_fg = case level
+        when "D" then :yellow_fg
+        when "E" then :red_fg
+        else :white_fg
+        end
+        segments << [" #{level} ", [:black_bg, :bold] << level_fg]
         # log tag
-        log_segment["#{process_segment[2]} ", :black_bg, :cyan_fg, :bold]
+        tag = process[2].strip
+        segments << ["#{tag} ", [:black_bg, :cyan_fg, :bold]]
         # log remaining line
         remainder = [TIMESTAMP_PATTERN, PROCESS_PATTERN].reduce(line) { |l,r| l.gsub(r, '') }.strip
-        log_segment[" #{remainder}", :white_fg]
+        segments << [" #{remainder}\n", [:white_fg]]
 
-        o.write "\n"
       elsif @repl.debug?
-        log_segment[" #{ts_segment} ", :black_fg]
-        log_segment[" [muted]\n", :black_fg]
+        segments << [" #{timestamp} ", [:black_fg]]
+        segments << [" [muted]\n", [:black_fg]]
       end
-    else # other log line, print as is
-      o.puts(line)
     end
+    segments
   end
 
 end
