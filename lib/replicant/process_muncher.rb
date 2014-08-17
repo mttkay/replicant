@@ -4,14 +4,18 @@ class ProcessMuncher
     @repl = repl
   end
 
-  def find_pid
+  def process_table
     processes = AdbCommand.new(@repl, "shell ps", :silent => true).execute
-    pid_line = processes.lines.detect {|l| l.include?(@repl.default_package)}
-    if pid_line
-      pid_line.split[1].strip
-    else
-      nil
-    end
+    # Parses something like:
+    # u0_a27    1333  123   517564 18668 ffffffff b75a59eb S com.android.musicfx
+    processes.lines.map do |pid_line|
+      columns = pid_line.split
+      [columns[1], columns[-1]]
+    end.to_h
+  end
+
+  def find_pid
+    process_table.invert[@repl.default_package]
   end
 
   def scan_pid
