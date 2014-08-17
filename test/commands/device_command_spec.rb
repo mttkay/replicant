@@ -7,7 +7,7 @@ class DeviceCommandSpec < CommandSpecBase
       @device1 = Device.new("1", "emulator-5554", "Emulator 1")
       @device2 = Device.new("2", "emulator-5556", "Emulator 2")
       DevicesCommand.any_instance.stubs(:execute).returns([@device1, @device2])
-      AdbCommand.any_instance.stubs(:execute)
+      AdbCommand.any_instance.stubs(:command).returns("echo 'stub!'")
     end
 
     it "can select a device by index" do
@@ -37,7 +37,7 @@ class DeviceCommandSpec < CommandSpecBase
   describe "given an empty list of devices" do
     before do
       DevicesCommand.any_instance.stubs(:execute).returns([])
-      AdbCommand.any_instance.stubs(:execute)
+      AdbCommand.any_instance.stubs(:command).returns("echo 'stub!'")
     end
 
     it "does not return or update anything if selected device doesn't exist" do
