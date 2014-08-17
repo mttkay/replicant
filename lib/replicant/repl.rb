@@ -37,6 +37,13 @@ module Replicant
         PackageCommand.new(self, app_package).execute
       end
 
+      # try to pre-select a device, if any
+      connected_devices = DevicesCommand.new(self, nil, :silent => true).execute
+      if connected_devices.any?
+        output "Found #{connected_devices.size} device(s)"
+        DeviceCommand.new(self, "1").execute
+      end
+
       # reset terminal colors on exit
       at_exit { puts end_style }
 
@@ -61,8 +68,12 @@ module Replicant
         command.execute
         puts styled_text("OK.", :white_fg, :bold)
       else
-        puts "No such command"
+        output "No such command"
       end
+    end
+
+    def output(msg)
+      puts styled_text(msg, *REPL_OUT)
     end
 
     def debug?
@@ -73,7 +84,8 @@ module Replicant
 
     def prompt
       prompt = ENV['REPL_PROMPT'] || begin
-        styled_text('>> ', :white_fg, :bold) { create_style(:green_fg) }
+        pr = (default_device ? "#{default_device.short_name} " : "") << ">> "
+        styled_text(pr, :white_fg, :bold) { create_style(*REPL_OUT) }
       end.lstrip
     end
 

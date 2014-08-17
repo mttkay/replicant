@@ -27,6 +27,8 @@ module Styles
     :bold => 1
   }
 
+  REPL_OUT = [:green_fg, :bold]
+
   def styled_text(text, *styles)
     create_style(*styles) + text + if block_given? then yield else end_style end
   end

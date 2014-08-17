@@ -1,8 +1,4 @@
-require_relative '../styles'
-
 class DeviceCommand < Command
-
-  include Styles
 
   LOGFILE = "/tmp/replicant_device"
 
@@ -21,9 +17,9 @@ class DeviceCommand < Command
   end
 
   def run
-    default_device = if index?
+    default_device = if index? && (1..devices.size).include?(args.to_i)
       # user selected by index
-      devices[args.to_i]
+      devices[args.to_i - 1]
     else
       # user selected by device ID
       devices.detect { |d| d.id == args }
@@ -33,15 +29,16 @@ class DeviceCommand < Command
       @repl.default_device = default_device
       output "Default device set to #{default_device.name}"
 
-      Thread.abort_on_exception = true
       # kill any existing threads
       putsd "Found #{@@threads.size} zombie threads, killing..." unless @@threads.empty?
       @@threads.select! { |t| t.exit }
 
       i, o = redirect_device_logs
 
-      @pid = find_pid(o)
-      scan_pid!(o)
+      if @repl.default_package
+        @pid = find_pid(o)
+        scan_pid!(o)
+      end
 
       transform_device_logs!(i, o)
 

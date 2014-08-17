@@ -1,7 +1,8 @@
 class Device
-  attr_reader :id, :name
+  attr_reader :idx, :id, :name
 
-  def initialize(id, name)
+  def initialize(idx, id, name)
+    @idx = idx
     @id = id
     @name = name
   end
@@ -12,6 +13,10 @@ class Device
 
   def physical_device?
     !emulator?
+  end
+
+  def short_name
+    "#{@name[0..4]}[#{@idx}]"
   end
 
   def to_s

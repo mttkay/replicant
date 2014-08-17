@@ -1,6 +1,9 @@
 require 'stringio'
+require_relative '../styles'
 
 class Command
+
+  include Styles
 
   def self.inherited(subclass)
     @@subclasses ||= []
@@ -73,7 +76,7 @@ class Command
   end
 
   def output(message)
-    puts message unless @options[:silent]
+    @repl.output(message) unless @options[:silent]
   end
 
   def putsd(message)

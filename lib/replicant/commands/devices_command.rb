@@ -16,8 +16,9 @@ class DevicesCommand < Command
       /model:([\S]+)/.match(l).try(:[], 1) || detect_device_name(id)
     end
 
-    devices = device_ids.zip(device_names, device_products).map do |id, name, product|
-      Device.new(id, humanize_name(name, product))
+    device_indices = (1..device_ids.size).to_a
+    devices = device_indices.zip(device_ids, device_names, device_products).map do |idx, id, name, product|
+      Device.new(idx, id, humanize_name(name, product))
     end
 
     output ""
@@ -47,8 +48,7 @@ class DevicesCommand < Command
   def devices_string(devices)
     device_string = if devices.any?
       padding = devices.map { |d| d.name.length }.max
-      indices = (0..devices.length - 1).to_a
-      indices.zip(devices).map { |i, d| "[#{i}] #{d.name}#{' ' * (padding - d.name.length)} | #{d.id}" }
+      devices.map { |d| "[#{d.idx}] #{d.name}#{' ' * (padding - d.name.length)} | #{d.id}" }.join("\n")
     else
       "No devices found"
     end
