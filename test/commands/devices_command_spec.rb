@@ -17,14 +17,6 @@ emulator-5554          device
 
 OUTPUT
 
-REPLICANT_DEVICES = <<-OUTPUT
-
-[0] Genymotion Nexus 4 API 18 768x1280 | 192.168.56.101:5555
-[1] Nexus 4                            | 005de387d71505d6
-[2] Android emulator                   | emulator-5554
-
-OUTPUT
-
 class DevicesCommandSpec < CommandSpecBase
 
   describe "when no devices were found" do
@@ -37,10 +29,6 @@ class DevicesCommandSpec < CommandSpecBase
       command.execute.must_equal []
     end
 
-    it "prints a message and exits" do
-      command = DevicesCommand.new(@repl)
-      lambda { command.execute }.must_output("\nNo devices found\n\n")
-    end
   end
 
   describe "when devices were found" do
@@ -56,10 +44,6 @@ class DevicesCommandSpec < CommandSpecBase
       ]
     end
 
-    it "outputs a prettified, indexed list of devices" do
-      command = DevicesCommand.new(@repl)
-      lambda { command.execute }.must_output(REPLICANT_DEVICES)
-    end
   end
 
 end

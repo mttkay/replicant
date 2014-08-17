@@ -1,13 +1,12 @@
 class Command
-  attr_reader :backtick_capture
-  attr_reader :system_capture
+  attr_reader :shell_capture
   # capture system calls on all commands
   def `(cmd)
-    @backtick_capture = cmd
+    @shell_capture = cmd
     nil
   end
   def system(cmd)
-    @system_capture = cmd
+    @shell_capture = cmd
     nil
   end
 end

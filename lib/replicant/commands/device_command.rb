@@ -46,6 +46,8 @@ class DeviceCommand < Command
     else
       output "No such device"
     end
+
+    default_device
   end
 
   private
