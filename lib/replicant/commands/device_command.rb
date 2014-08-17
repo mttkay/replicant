@@ -4,6 +4,11 @@ class DeviceCommand < Command
 
   @@threads = []
 
+  def initialize(repl, args = nil, options = {})
+    super
+    @process_muncher = ProcessMuncher.new(@repl)
+  end
+
   def description
     "set a default device to work with"
   end
@@ -35,10 +40,14 @@ class DeviceCommand < Command
 
       i, o = redirect_device_logs
 
-      if @repl.default_package
-        @pid = find_pid(o)
+      @@threads << @process_muncher.scan_pid! do |new_pid|
+        @current_pid = new_pid
+        if new_pid
+          log_state_change!(o, "#{@repl.default_package} (pid = #{new_pid})")
+        else
+          log_state_change!(o, "<all>")
+        end
       end
-      scan_pid!(o)
 
       transform_device_logs!(i, o)
 
@@ -58,36 +67,6 @@ class DeviceCommand < Command
 
   def devices
     @devices ||= DevicesCommand.new(@repl, nil, :silent => true).execute
-  end
-
-  def find_pid(logfile)
-    putsd "Scanning for PID..."
-    processes = AdbCommand.new(@repl, "shell ps", :silent => true).execute
-    pid_line = processes.lines.detect {|l| l.include?(@repl.default_package)}
-    if pid_line
-      pid_line.split[1].strip.tap do |pid|
-        log_state_change!(logfile, "#{@repl.default_package} (pid = #{pid})") if pid != @pid
-        pid
-      end
-    else
-      log_state_change!(logfile, "<all>") if @pid
-      nil
-    end
-  end
-
-  def scan_pid!(logfile)
-    @@threads << Thread.new do 
-      begin
-        while @repl.default_package
-          @pid = find_pid(logfile)
-          sleep 2
-        end
-      rescue Exception => e
-        puts e.inspect
-        puts e.backtrace.join("\n")
-        raise e
-      end
-    end
   end
 
   def clear_logs!
@@ -138,7 +117,7 @@ class DeviceCommand < Command
             process_segment = process.match(line)
             pid = process_segment[3]
 
-            if @pid.nil? || @pid == pid
+            if @current_pid.nil? || @current_pid == pid
               log_segment[" #{ts_segment} ", :white_bg, :bold]
               # log level
               log_segment[" #{process_segment[1]} ", :black_bg, :yellow_fg, :bold]
