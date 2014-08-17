@@ -14,7 +14,7 @@ class ProcessMuncher
     end
   end
 
-  def scan_pid!
+  def scan_pid
     @last_pid = nil
     Thread.new do 
       begin
