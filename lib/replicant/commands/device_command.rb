@@ -37,8 +37,8 @@ class DeviceCommand < Command
 
       if @repl.default_package
         @pid = find_pid(o)
-        scan_pid!(o)
       end
+      scan_pid!(o)
 
       transform_device_logs!(i, o)
 
@@ -93,14 +93,11 @@ class DeviceCommand < Command
   end
 
   def redirect_device_logs
-    # create logging pipe if needed
-    system "if ! [ -p #{LOGFILE} ]; then mkfifo #{LOGFILE}; fi"
-
     # redirect logcat to fifo pipe
     logcat = "logcat -v time"
 
     i = IO.popen(AdbCommand.new(@repl, logcat).command)
-    o = open(LOGFILE, 'w+')
+    o = File.open(LOGFILE, 'wt')
 
     [i, o]
   end
@@ -139,10 +136,7 @@ class DeviceCommand < Command
             process_segment = process.match(line)
             pid = process_segment[3]
 
-            if @repl.debug? && @pid && @pid != pid
-              log_segment[" #{ts_segment} ", :black_fg]
-              log_segment[" [muted]", :black_fg]
-            else
+            if @pid.nil? || @pid == pid
               log_segment[" #{ts_segment} ", :white_bg, :bold]
               # log level
               log_segment[" #{process_segment[1]} ", :black_bg, :yellow_fg, :bold]
@@ -151,12 +145,16 @@ class DeviceCommand < Command
               # log remaining line
               remainder = [timestamp, process].reduce(line) { |l,r| l.gsub(r, '') }.strip
               log_segment[" #{remainder}", :white_fg]
+
+              o.write "\n"
+            elsif @repl.debug?
+              log_segment[" #{ts_segment} ", :black_fg]
+              log_segment[" [muted]\n", :black_fg]
             end
-            o.write "\n"
-            o.flush
           else # other log line, print as is
             o.puts(line)
           end
+          o.flush
         end
       rescue Exception => e
         puts e.inspect
