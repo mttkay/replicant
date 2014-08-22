@@ -9,6 +9,7 @@ class DevicesCommand < Command
       line.strip.empty? || line.include?("daemon") || line.include?("List of devices")
     end
 
+    device_lines.reject! { |l| l =~ /offline/ }
     device_ids = device_lines.map { |l| /([\S]+)\s+device/.match(l)[1] }
     device_products = device_lines.map { |l| /product:([\S]+)/.match(l).try(:[], 1) }
 

@@ -14,6 +14,7 @@ List of devices attached
 192.168.56.101:5555    device product:vbox86p model:Nexus_4___4_3___API_18___768x1280 device:vbox86p
 005de387d71505d6       device usb:1D110000 product:occam model:Nexus_4 device:mako
 emulator-5554          device
+emulator-5556          offline
 
 OUTPUT
 
@@ -36,7 +37,7 @@ class DevicesCommandSpec < CommandSpecBase
       AdbCommand.any_instance.expects(:execute).returns(ADB_DEVICES)
     end
 
-    it "returns the list of devices" do
+    it "returns the list of devices, bar those that are offline" do
       command = silent DevicesCommand.new(@repl)
       devices = command.execute
       devices.map { |d| d.id }.must_equal [
