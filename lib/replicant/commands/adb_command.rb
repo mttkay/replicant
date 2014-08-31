@@ -1,18 +1,24 @@
 class AdbCommand < Command
 
+  class Result
+    attr_accessor :pid, :code, :output
+  end
+
   def run
-    begin
+    Result.new.tap do |result|
       cmd = "#{command}"
 
-      if require_subshell?
+      putsd cmd
+
+      if interactive?
         system cmd
       else
-        cmd << " #{@repl.default_package}" if @repl.default_package && package_dependent?
-        putsd cmd
-        result = `#{cmd}`
+        result.output = `#{cmd}`
         output result
-        result
       end
+      result.pid  = $?.pid
+      result.code = $?.exitstatus
+      putsd "Command returned with exit status #{result.code}"
     end
   end
 
@@ -20,12 +26,13 @@ class AdbCommand < Command
     adb = "adb"
     adb << " -s #{@repl.default_device.id}" if @repl.default_device
     adb << " #{args}"
+    adb << " #{@repl.default_package}" if @repl.default_package && package_dependent?
     adb
   end
 
   private
 
-  def require_subshell?
+  def interactive?
     args == "shell" || args.start_with?("logcat")
   end
 

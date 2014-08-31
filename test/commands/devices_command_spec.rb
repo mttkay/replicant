@@ -20,9 +20,14 @@ OUTPUT
 
 class DevicesCommandSpec < CommandSpecBase
 
+  before do
+    @result = Object.new
+    AdbCommand.any_instance.expects(:execute).returns(@result)
+  end
+
   describe "when no devices were found" do
     before do
-      AdbCommand.any_instance.expects(:execute).returns(ADB_NO_DEVICES)
+      @result.stubs(:output).returns(ADB_NO_DEVICES)
     end
 
     it "returns an empty device list" do
@@ -34,7 +39,7 @@ class DevicesCommandSpec < CommandSpecBase
 
   describe "when devices were found" do
     before do
-      AdbCommand.any_instance.expects(:execute).returns(ADB_DEVICES)
+      @result.stubs(:output).returns(ADB_DEVICES)
     end
 
     it "returns the list of devices, bar those that are offline" do

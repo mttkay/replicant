@@ -5,7 +5,7 @@ class ProcessMuncher
   end
 
   def process_table
-    processes = AdbCommand.new(@repl, "shell ps", :silent => true).execute
+    processes = AdbCommand.new(@repl, "shell ps", :silent => true).execute.output
     # Parses something like:
     # u0_a27    1333  123   517564 18668 ffffffff b75a59eb S com.android.musicfx
     processes.lines.map do |pid_line|

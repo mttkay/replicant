@@ -13,7 +13,7 @@ OUTPUT
   describe "Given an adb process list containing the desired process" do
     
     before do
-      AdbCommand.any_instance.stubs(:execute).returns(ADB_SHELL_PS)
+      AdbCommand.any_instance.stubs(:execute).returns(stub(:output => ADB_SHELL_PS))
       repl = stub(:default_package => "com.soundcloud.android")
       @muncher = ProcessMuncher.new(repl)
     end
@@ -32,7 +32,7 @@ OUTPUT
   describe "Given an adb process list without the desired process" do
     
     before do
-      AdbCommand.any_instance.stubs(:execute).returns(ADB_SHELL_PS)
+      AdbCommand.any_instance.stubs(:execute).returns(stub(:output => ADB_SHELL_PS))
       repl = stub(:default_package => "not in process list")
       @muncher = ProcessMuncher.new(repl)
     end
@@ -46,7 +46,7 @@ OUTPUT
   describe "When no default package is set" do
 
     before do
-      AdbCommand.any_instance.stubs(:execute).returns(ADB_SHELL_PS)
+      AdbCommand.any_instance.stubs(:execute).returns(stub(:output => ADB_SHELL_PS))
       repl = stub(:default_package => nil)
       @muncher = ProcessMuncher.new(repl)
     end

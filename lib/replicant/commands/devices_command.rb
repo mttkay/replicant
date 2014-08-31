@@ -5,7 +5,7 @@ class DevicesCommand < Command
 
   def run
     adb = AdbCommand.new(@repl, "devices -l", :silent => true)
-    device_lines = adb.execute.lines.to_a.reject do |line|
+    device_lines = adb.execute.output.lines.to_a.reject do |line|
       line.strip.empty? || line.include?("daemon") || line.include?("List of devices")
     end
 

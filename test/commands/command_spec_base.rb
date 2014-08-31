@@ -2,13 +2,17 @@ class Command
   attr_reader :shell_capture
   # capture system calls on all commands
   def `(cmd)
-    @shell_capture = cmd
-    nil
+    capture_shell!(cmd)
   end
   def system(cmd)
-    @shell_capture = cmd
-    nil
+    capture_shell!(cmd)
   end
+  private def capture_shell!(cmd)
+    @shell_capture = cmd
+    # make sure $? is set
+    Kernel::system("echo", "\\c")
+    nil
+  end  
 end
 
 class CommandSpecBase < MiniTest::Spec
