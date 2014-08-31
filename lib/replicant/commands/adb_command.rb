@@ -27,6 +27,7 @@ class AdbCommand < Command
     adb << " -s #{@repl.default_device.id}" if @repl.default_device
     adb << " #{args}"
     adb << " #{@repl.default_package}" if @repl.default_package && package_dependent?
+    adb << " 2>&1" # redirect stderr to stdout so that we can silence it
     adb
   end
 
