@@ -10,7 +10,7 @@ gem "activesupport-core-ext", "~> 4.0", :require => false
 group :development do
   gem "rake", "~> 10.1"
   gem "bundler", "~> 1.0"
-  gem "jeweler", "~> 1.8"
+  gem "jeweler", "~> 2.0"
 end
 
 group :test do
