@@ -101,7 +101,7 @@ module Replicant
  88       88.  ... 88.  .88 88 88 88.  ... 88.  .88 88    88   88
  dP       `88888P' 88Y888P' dP dP `88888P' `88888P8 dP    dP   dP
                    88
-                   dP                    (c) 2013 Matthias Kaeppler
+                   dP               (c) 2013-2014 Matthias Kaeppler
       logo
       puts style + ("~" * Styles::CONSOLE_WIDTH)
       puts " v" + Replicant::VERSION
