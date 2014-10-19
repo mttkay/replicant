@@ -17,6 +17,10 @@ class AdbCommandSpec < CommandSpecBase
       @result.pid.must_equal $?.pid
     end
 
+    it "prints its output to the REPL" do
+      @command = AdbCommand.new(@repl, "devices")
+      lambda { @command.execute }.must_output /mock output/
+    end
   end
 
   describe "with a default package set" do

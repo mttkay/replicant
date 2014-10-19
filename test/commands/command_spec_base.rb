@@ -11,7 +11,7 @@ class Command
     @shell_capture = cmd
     # make sure $? is set
     Kernel::system("echo", "\\c")
-    nil
+    "mock output"
   end  
 end
 

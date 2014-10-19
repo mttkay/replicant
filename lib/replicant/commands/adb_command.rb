@@ -2,6 +2,10 @@ class AdbCommand < Command
 
   class Result
     attr_accessor :pid, :code, :output
+
+    def to_s
+      "result: pid=#{pid} code=#{code} output=#{output}"
+    end
   end
 
   def run
@@ -14,7 +18,7 @@ class AdbCommand < Command
         system cmd
       else
         result.output = `#{cmd}`
-        output result
+        output result.output
       end
       result.pid  = $?.pid
       result.code = $?.exitstatus
