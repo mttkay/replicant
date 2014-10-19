@@ -1,5 +1,3 @@
-require_relative 'styles'
-
 class LogMuncher
 
   include Styles

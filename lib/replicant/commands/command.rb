@@ -1,5 +1,4 @@
 require 'stringio'
-require_relative '../styles'
 
 class Command
 
