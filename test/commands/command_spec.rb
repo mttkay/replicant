@@ -68,7 +68,7 @@ class CommandSpec < CommandSpecBase
 
   describe "command options" do
     before do
-      class ::TestCommand < Command
+      class TestCommand < Command
         def run
           output "this is a test"
         end
@@ -76,14 +76,14 @@ class CommandSpec < CommandSpecBase
     end
 
     it "can silence console output" do
-      command = ::TestCommand.new(@repl, nil, :silent => true)
+      command = TestCommand.new(@repl, nil, :silent => true)
       lambda { command.execute }.must_be_silent
     end
   end
 
   describe "arguments" do
     it "strips argument whitespace when creating command instance" do
-      command = ::TestCommand.new(@repl, " ")
+      command = TestCommand.new(@repl, " ")
       command.args.must_equal ""
     end
   end
