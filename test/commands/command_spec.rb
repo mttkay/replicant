@@ -2,6 +2,12 @@ require 'helper'
 
 class CommandSpec < CommandSpecBase
 
+  class TestCommand < Command
+    def run
+      output "this is a test"
+    end
+  end
+
   describe "command loading" do
     it "loads the EnvCommand when command is '?'" do
       command = Command.load(@repl, "?")
@@ -67,14 +73,6 @@ class CommandSpec < CommandSpecBase
   end
 
   describe "command options" do
-    before do
-      class TestCommand < Command
-        def run
-          output "this is a test"
-        end
-      end
-    end
-
     it "can silence console output" do
       command = TestCommand.new(@repl, nil, :silent => true)
       lambda { command.execute }.must_be_silent
