@@ -154,18 +154,34 @@ module Replicant
     # a maximum depth of 2 directory levels
     def detect_android_manifest_path
       manifest_file = 'AndroidManifest.xml'
-      known_locations = %W(./#{manifest_file} ./src/main/#{manifest_file})
-      known_locations.find {|loc| File.exist?(loc)} || begin
+      known_manifest_locations = %W(./#{manifest_file} ./src/main/#{manifest_file})
+      known_manifest_locations.find {|loc| File.exist?(loc)} || begin
         Find.find('.') do |path|
           Find.prune if path.start_with?('./.') || path.split('/').size > 3
-          return path if path.include?(manifest_file)
+          if File.directory?(path)
+            manifest_file_path = known_manifest_locations.map {|known_location| "#{path}/#{known_location}"}.find {|loc| File.exist?(loc)}
+            return manifest_file_path if manifest_file_path and is_application_path?(path)
+          end
         end
       end
+    end
+
+    def is_application_path?(path)
+      if File.exists?("#{path}/project.properties") # old library project
+        return IO.readlines("#{path}/project.properties").find { |l| l =~ /android.library=true/ }.nil?
+      else
+        # TODO: support gradle files named something other than build.gradle.
+        if File.exists?("#{path}/build.gradle")
+          return not(IO.readlines("#{path}/build.gradle").find { |l| l =~ /com.android.application/ }.nil?)
+        end
+      end
+
+      true
     end
 
     def get_package_from_manifest(manifest_path)
       manifest = REXML::Document.new(File.new(manifest_path))
       manifest.root.attributes['package']
-    end  
+    end
   end
 end
