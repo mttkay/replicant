@@ -160,23 +160,20 @@ module Replicant
           Find.prune if path.start_with?('./.') || path.split('/').size > 3
           if File.directory?(path)
             manifest_file_path = known_manifest_locations.map {|known_location| "#{path}/#{known_location}"}.find {|loc| File.exist?(loc)}
-            return manifest_file_path if manifest_file_path and is_application_path?(path)
+            return manifest_file_path if manifest_file_path and application_path?(path)
           end
         end
       end
     end
 
-    def is_application_path?(path)
+    def application_path?(path)
       if File.exists?("#{path}/project.properties") # old library project
-        return IO.readlines("#{path}/project.properties").find { |l| l =~ /android.library=true/ }.nil?
+        return IO.readlines("#{path}/project.properties").none? { |l| l =~ /android.library=true/ }
+      elsif File.exists?("#{path}/build.gradle")
+        return IO.readlines("#{path}/build.gradle").any { |l| l =~ /com.android.application/ }
       else
-        # TODO: support gradle files named something other than build.gradle.
-        if File.exists?("#{path}/build.gradle")
-          return not(IO.readlines("#{path}/build.gradle").find { |l| l =~ /com.android.application/ }.nil?)
-        end
+        true
       end
-
-      true
     end
 
     def get_package_from_manifest(manifest_path)
